@@ -85,7 +85,7 @@ The name combines **"SALSA"** (dance rhythm) with **"OS"** (operating system), c
 
 ## 🚀 Live Demo
 
-🔗 **[Click here to try SALSA OS](https://your-username.github.io/salsa-os/)** *(replace with your actual URL after deploying)*
+🔗 **[Click here to try SALSA OS]([https://fawwaznasuha12-afk.github.io/salsaOS/])** *(replace with your actual URL after deploying)*
 
 ---
 
