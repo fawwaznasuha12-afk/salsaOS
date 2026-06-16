@@ -85,7 +85,7 @@ The name combines **"SALSA"** (dance rhythm) with **"OS"** (operating system), c
 
 ## 🚀 Live Demo
 
-🔗 **[Click here to try SALSA OS]([https://fawwaznasuha12-afk.github.io/salsaOS/])** *(replace with your actual URL after deploying)*
+🔗 **[Click here to try SALSA OS](https://fawwaznasuha12-afk.github.io/salsaOS/)**
 
 ---
 
@@ -112,18 +112,6 @@ The name combines **"SALSA"** (dance rhythm) with **"OS"** (operating system), c
 
 ---
 
-## 📁 Project Structure
-salsa-os/
-├── index.html # Complete application (HTML/CSS/JS)
-├── README.md # Documentation
-└── screenshot.png # Preview image
-
-text
-
-> **Note:** Everything is contained in a single HTML file for easy deployment.
-
----
-
 ## 🧠 What I Learned
 
 - Building a **Web Audio API** synthesizer from scratch
@@ -147,16 +135,6 @@ All core logic, design decisions, and final code review were done by me.
 
 ---
 
-## 📅 Timeline
-
-| Phase | Duration | Work |
-|-------|----------|------|
-| Planning | 1 day | UI design, feature selection |
-| Core Development | 2 days | Window system, taskbar, basic apps |
-| Polish | 1 day | Animations, games, bug fixes |
-
----
-
 ## 🙏 Acknowledgments
 
 - **[Hack Club](https://hackclub.com)** for organizing Stardance
@@ -177,4 +155,4 @@ Made with 💃 and 🚀 for **Hack Club Stardance 2026**
 
 ---
 
-
+*"Dance like the stars are watching"* ✨
