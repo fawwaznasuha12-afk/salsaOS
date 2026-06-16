@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SALSA OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0e1a;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* WALLPAPER */
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0a0e1a 100%);
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.shooting {
+  position: absolute;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(white, transparent);
+  opacity: 0;
+  transform: rotate(45deg);
+}
+
+/* CLOCK */
+.clock {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 100;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.1);
+  letter-spacing: 0.5px;
+}
+
+/* TASKBAR */
+.taskbar {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  background: rgba(15, 15, 18, 0.9);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.taskbar-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 3px;
+}
+
+.taskbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.taskbar-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.taskbar-item:active {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.taskbar-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.2s ease;
+}
+
+.taskbar-item:hover .taskbar-icon {
+  transform: scale(1.1);
+  color: rgba(255, 255, 255, 1);
+}
+
+.taskbar-label {
+  font-size: 7px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.3px;
+}
+
+.taskbar-indicator {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.taskbar-item.active .taskbar-indicator {
+  opacity: 1;
+}
+
+.workspace-group {
+  display: flex;
+  gap: 5px;
+  padding: 0 2px;
+}
+
+.workspace-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.workspace-dot:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.workspace-dot.active {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.taskbar-action {
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.taskbar-action:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 1);
+}
+
+/* WINDOWS */
+.window {
+  position: fixed;
+  z-index: 100;
+  background: rgba(18, 22, 35, 0.92);
+  backdrop-filter: blur(24px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 340px;
+  min-height: 260px;
+  transition: box-shadow 0.15s, left 0.1s ease-out, top 0.1s ease-out;
+}
+
+.window.active {
+  box-shadow: 0 0 0 2px rgba(232,76,125,0.4), 0 20px 40px rgba(0,0,0,0.4);
+  z-index: 200;
+}
+
+.window.minimized {
+  opacity: 0;
+  transform: scale(0.3) translateY(80px);
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.window-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  cursor: grab;
+  transition: background 0.15s;
+}
+
+.window-header:active {
+  cursor: grabbing;
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.window-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.window-btn:hover {
+  transform: scale(1.15);
+}
+
+.window-btn.close {
+  background: #ff5f57;
+}
+
+.window-btn.minimize {
+  background: #febc2e;
+}
+
+.window-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  flex: 1;
+}
+
+.window-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.window-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.window-body::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+}
+
+.window-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+}
+
+.window-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  cursor: se-resize;
+  opacity: 0.3;
+  transition: opacity 0.15s;
+}
+
+.resize-handle:hover {
+  opacity: 0.8;
+}
+
+/* TOAST */
+.toast-container {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  border-left: 3px solid;
+  font-size: 12px;
+  animation: toastIn 0.2s ease;
+}
+
+.toast.success {
+  border-left-color: #22c55e;
+  color: #86efac;
+}
+
+.toast.info {
+  border-left-color: #8b5cf6;
+  color: #c4b5fd;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* MUSIC PLAYER - DIPERBAIKI */
+.music-player {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.album {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #e84c7d, #f97316, #8b5cf6);
+  margin: 0 auto;
+  animation: spin 8s linear infinite paused;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.album.playing {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.track-name {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+}
+
+.track-artist {
+  font-size: 11px;
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+
+.equalizer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 5px;
+  height: 32px;
+  margin: 5px 0;
+}
+
+.eq-bar {
+  width: 5px;
+  background: linear-gradient(to top, #e84c7d, #f97316);
+  border-radius: 2px;
+  height: 6px;
+  transition: height 0.08s ease;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 8px 0;
+}
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ctrl-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.08);
+}
+
+.ctrl-btn:active {
+  transform: scale(0.95);
+}
+
+.ctrl-btn.play {
+  background: #e84c7d;
+}
+
+.ctrl-btn.play:hover {
+  background: #e84c7d;
+  transform: scale(1.05);
+}
+
+.volume-slider {
+  width: 100%;
+  height: 3px;
+  margin: 8px 0;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e84c7d;
+  cursor: pointer;
+}
+
+.playlist {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  transition: all 0.15s;
+}
+
+.playlist-item:hover {
+  background: rgba(255,255,255,0.07);
+  transform: translateX(2px);
+}
+
+.playlist-item.active {
+  background: rgba(232,76,125,0.2);
+  color: #e84c7d;
+}
+
+/* COUNTDOWN */
+.countdown {
+  text-align: center;
+}
+
+.circular {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto;
+}
+
+.countdown-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.cd-card {
+  flex: 1;
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+  padding: 10px 5px;
+  text-align: center;
+  transition: transform 0.15s;
+}
+
+.cd-card:hover {
+  transform: translateY(-2px);
+}
+
+.cd-number {
+  font-size: 24px;
+  font-family: monospace;
+  font-weight: 700;
+  color: white;
+}
+
+.cd-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 4px;
+}
+
+.motivation {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 10px;
+}
+
+/* NOTES */
+.notes-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.note-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.note-btn:hover {
+  background: rgba(232,76,125,0.3);
+  border-color: #e84c7d;
+  transform: translateY(-1px);
+}
+
+.note-btn:active {
+  transform: translateY(0);
+}
+
+.note-btn.primary {
+  background: #e84c7d;
+  border-color: transparent;
+}
+
+.notes-panel {
+  display: flex;
+  gap: 12px;
+  min-height: 260px;
+}
+
+.notes-input {
+  flex: 1;
+  background: rgba(0,0,0,0.25);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  font-family: monospace;
+  font-size: 11px;
+  resize: none;
+}
+
+.notes-input:focus {
+  outline: none;
+  background: rgba(0,0,0,0.35);
+}
+
+.notes-preview {
+  flex: 1;
+  background: rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 11px;
+  overflow-y: auto;
+  color: rgba(255,255,255,0.8);
+}
+
+.notes-footer {
+  font-size: 9px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 10px;
+  text-align: right;
+}
+
+/* SETTINGS */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.setting-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+}
+
+.setting-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.color-opt {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.color-opt:hover {
+  transform: scale(1.15);
+}
+
+select {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* DISCO MODE */
+.disco-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.disco-overlay.active {
+  opacity: 0.5;
+  animation: discoFlash 0.1s infinite;
+}
+
+@keyframes discoFlash {
+  0% { background: red; }
+  25% { background: blue; }
+  50% { background: green; }
+  75% { background: yellow; }
+  100% { background: purple; }
+}
+
+.shake {
+  animation: shakeAnim 0.4s ease infinite;
+}
+
+@keyframes shakeAnim {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-3px, 2px) rotate(-1deg); }
+  75% { transform: translate(3px, -2px) rotate(1deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="wallpaper" id="wallpaper"></div>
+<div class="clock" id="clock">00:00:00 UTC</div>
+<div class="disco-overlay" id="disco"></div>
+
+<div class="taskbar">
+  <div class="workspace-group">
+    <div class="workspace-dot active" data-ws="1"></div>
+    <div class="workspace-dot" data-ws="2"></div>
+  </div>
+  <div class="taskbar-divider"></div>
+  
+  <div class="taskbar-item" data-app="music">
+    <div class="taskbar-icon"><i class="fas fa-music"></i></div>
+    <div class="taskbar-label">Music</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+  
+  <div class="taskbar-item" data-app="countdown">
+    <div class="taskbar-icon"><i class="fas fa-hourglass-end"></i></div>
+    <div class="taskbar-label">Time</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+  
+  <div class="taskbar-item" data-app="notes">
+    <div class="taskbar-icon"><i class="fas fa-sticky-note"></i></div>
+    <div class="taskbar-label">Notes</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+  
+  <div class="taskbar-item" data-app="settings">
+    <div class="taskbar-icon"><i class="fas fa-cog"></i></div>
+    <div class="taskbar-label">Settings</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+
+  <div class="taskbar-item" data-app="shooter">
+    <div class="taskbar-icon"><i class="fas fa-crosshairs"></i></div>
+    <div class="taskbar-label">Shooter</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+
+  <div class="taskbar-item" data-app="flappy">
+    <div class="taskbar-icon"><i class="fas fa-dove"></i></div>
+    <div class="taskbar-label">Flappy</div>
+    <div class="taskbar-indicator"></div>
+  </div>
+  
+  <div class="taskbar-divider"></div>
+  <div class="taskbar-action" id="searchBtn"><i class="fas fa-search"></i></div>
+</div>
+
+<!-- MUSIC WINDOW -->
+<div class="window" id="win-music" style="width: 360px; left: 60px; top: 80px;">
+  <div class="window-header">
+    <div class="window-controls">
+      <button class="window-btn close"></button>
+      <button class="window-btn minimize"></button>
+    </div>
+    <div class="window-title">Music Player</div>
+  </div>
+  <div class="window-body">
+    <div class="music-player">
+      <div class="album" id="album"></div>
+      <div class="track-name" id="trackName">Galactic Salsa</div>
+      <div class="track-artist" id="trackArtist">Cosmos Band</div>
+      <div class="equalizer" id="equalizer">
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" id="prevBtn">⏮</button>
+        <button class="ctrl-btn play" id="playBtn">▶</button>
+        <button class="ctrl-btn" id="nextBtn">⏭</button>
+      </div>
+      <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+      <div class="playlist" id="playlist"></div>
+    </div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<!-- COUNTDOWN WINDOW -->
+<div class="window" id="win-countdown" style="width: 380px; left: 460px; top: 80px;">
+  <div class="window-header">
+    <div class="window-controls">
+      <button class="window-btn close"></button>
+      <button class="window-btn minimize"></button>
+    </div>
+    <div class="window-title">Countdown</div>
+  </div>
+  <div class="window-body">
+    <div class="countdown">
+      <div class="circular">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="48" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
+          <circle id="progressCircle" cx="55" cy="55" r="48" fill="none" stroke="#e84c7d" stroke-width="5" stroke-dasharray="302" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 55 55)"/>
+        </svg>
+      </div>
+      <div class="countdown-grid">
+        <div class="cd-card"><div class="cd-number" id="days">000</div><div class="cd-label">Days</div></div>
+        <div class="cd-card"><div class="cd-number" id="hours">00</div><div class="cd-label">Hours</div></div>
+        <div class="cd-card"><div class="cd-number" id="minutes">00</div><div class="cd-label">Minutes</div></div>
+        <div class="cd-card"><div class="cd-number" id="seconds">00</div><div class="cd-label">Seconds</div></div>
+      </div>
+      <div class="motivation" id="motivation">✨ Keep moving ✨</div>
+    </div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<!-- NOTES WINDOW -->
+<div class="window" id="win-notes" style="width: 520px; left: 180px; top: 140px;">
+  <div class="window-header">
+    <div class="window-controls">
+      <button class="window-btn close"></button>
+      <button class="window-btn minimize"></button>
+    </div>
+    <div class="window-title">Notes</div>
+  </div>
+  <div class="window-body">
+    <div class="notes-toolbar">
+      <button class="note-btn primary" id="saveNote">Save</button>
+      <button class="note-btn" id="loadNote">Load</button>
+      <button class="note-btn" id="copyNote">Copy</button>
+      <button class="note-btn" id="exportNote">Export</button>
+    </div>
+    <div class="notes-panel">
+      <textarea class="notes-input" id="noteInput" placeholder="Write your notes...&#10;&#10;Use **bold text** or # heading"></textarea>
+      <div class="notes-preview" id="notePreview"></div>
+    </div>
+    <div class="notes-footer" id="noteFooter">Not saved</div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<!-- SETTINGS WINDOW -->
+<div class="window" id="win-settings" style="width: 400px; left: 320px; top: 180px;">
+  <div class="window-header">
+    <div class="window-controls">
+      <button class="window-btn close"></button>
+      <button class="window-btn minimize"></button>
+    </div>
+    <div class="window-title">Settings</div>
+  </div>
+  <div class="window-body">
+    <div class="settings-list">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Accent Color</div>
+          <div class="setting-desc">Change primary theme color</div>
+        </div>
+        <div class="color-picker">
+          <div class="color-opt" style="background: #e84c7d" data-color="#e84c7d"></div>
+          <div class="color-opt" style="background: #06b6d4" data-color="#06b6d4"></div>
+          <div class="color-opt" style="background: #22c55e" data-color="#22c55e"></div>
+          <div class="color-opt" style="background: #f59e0b" data-color="#f59e0b"></div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Default Volume</div>
+          <div class="setting-desc">Default music player volume</div>
+        </div>
+        <input type="range" id="defaultVolume" min="0" max="100" value="70" style="width: 120px;">
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">About</div>
+          <div class="setting-desc">SALSA OS is a web-based operating system with music player, countdown, notes, and games.</div>
+        </div>
+        <button class="note-btn" id="aboutBtn">Info</button>
+      </div>
+    </div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<!-- SHOOTER GAME WINDOW -->
+<div class="window" id="win-shooter" style="width: 500px; left: 100px; top: 200px;">
+  <div class="window-header">
+   <div class="window-controls">
+     <button class="window-btn close"></button>
+     <button class="window-btn minimize"></button>
+   </div>
+   <div class="window-title">Shooter Game</div>
+  </div>
+  <div class="window-body" style="padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+   <canvas id="shooterCanvas" width="480" height="320" style="background: linear-gradient(180deg, #1a2a3a 0%, #0a1a2a 100%); display: block; border-radius: 8px; margin: 10px;"></canvas>
+   <div style="display: flex; gap: 10px; margin: 10px 0; font-size: 12px; color: rgba(255,255,255,0.8);">
+     <span>Score: <span id="shooterScore">0</span></span>
+     <span>Lives: <span id="shooterLives">3</span></span>
+     <button class="note-btn" id="shooterBtn" style="padding: 4px 12px; font-size: 11px;">Start Game</button>
+   </div>
+   <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center;">Click to shoot | Move mouse | ESC to stop</div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<!-- FLAPPY BIRD WINDOW -->
+<div class="window" id="win-flappy" style="width: 350px; left: 650px; top: 200px;">
+  <div class="window-header">
+   <div class="window-controls">
+     <button class="window-btn close"></button>
+     <button class="window-btn minimize"></button>
+   </div>
+   <div class="window-title">Flappy Bird</div>
+  </div>
+  <div class="window-body" style="padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+   <canvas id="flappyCanvas" width="320" height="400" style="background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%); display: block; border-radius: 8px; margin: 10px;"></canvas>
+   <div style="display: flex; gap: 10px; margin: 10px 0; font-size: 12px; color: rgba(255,255,255,0.8);">
+     <span>Score: <span id="flappyScore">0</span></span>
+     <button class="note-btn" id="flappyBtn" style="padding: 4px 12px; font-size: 11px;">Start Game</button>
+   </div>
+   <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center;">Click or Space to jump</div>
+  </div>
+  <div class="resize-handle">⟳</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========== BINTANG ==========
+function createStars() {
+  const wp = document.getElementById('wallpaper');
+  for(let i = 0; i < 180; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.width = Math.random() * 2 + 1 + 'px';
+    star.style.height = star.style.width;
+    star.style.opacity = 0.3 + Math.random() * 0.5;
+    star.style.animation = `twinkle ${2 + Math.random() * 4}s infinite`;
+    wp.appendChild(star);
+  }
+}
+
+function createShootingStars() {
+  setInterval(() => {
+    const wp = document.getElementById('wallpaper');
+    const star = document.createElement('div');
+    star.className = 'shooting';
+    star.style.left = Math.random() * 80 + 10 + '%';
+    star.style.top = '-20px';
+    star.style.width = Math.random() * 2 + 1 + 'px';
+    star.style.height = 50 + Math.random() * 40 + 'px';
+    star.style.animation = `shoot ${1 + Math.random() * 1.5}s linear forwards`;
+    wp.appendChild(star);
+    setTimeout(() => star.remove(), 2500);
+  }, 5000);
+}
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+  @keyframes shoot {
+    0% { transform: translate(0, 0) rotate(45deg); opacity: 0.8; }
+    100% { transform: translate(-150px, 150px) rotate(45deg); opacity: 0; }
+  }
+`;
+document.head.appendChild(styleSheet);
+
+createStars();
+createShootingStars();
+
+// ========== CLOCK UTC ==========
+function updateClock() {
+  const now = new Date();
+  const h = now.getUTCHours().toString().padStart(2, '0');
+  const m = now.getUTCMinutes().toString().padStart(2, '0');
+  const s = now.getUTCSeconds().toString().padStart(2, '0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s} UTC`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ========== STATE ==========
+const appState = {
+  windows: { music: false, countdown: false, notes: false, settings: false, shooter: false, flappy: false },
+  minimized: { music: false, countdown: false, notes: false, settings: false, shooter: false, flappy: false },
+  playing: false,
+  currentTrack: 0,
+  volume: 70,
+  currentWorkspace: 1,
+  keyBuffer: ''
+};
+
+// ========== WINDOW DRAG DENGAN ANIMASI HALUS ==========
+let zIndex = 200;
+let activeDragWindow = null;
+
+function bringToFront(win) {
+  win.style.zIndex = ++zIndex;
+  win.classList.add('active');
+  setTimeout(() => {
+    if(win.classList.contains('active')) {
+      document.querySelectorAll('.window').forEach(w => {
+        if(w !== win) w.classList.remove('active');
+      });
+    }
+  }, 10);
+}
+
+function makeDraggable(win, id) {
+  const header = win.querySelector('.window-header');
+  let startX, startY, startLeft, startTop, isDragging = false;
+  let rafId = null;
+  
+  header.addEventListener('mousedown', (e) => {
+    if(e.target.classList.contains('window-btn')) return;
+    e.preventDefault();
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = win.offsetLeft;
+    startTop = win.offsetTop;
+    win.style.transition = 'none';
+    bringToFront(win);
+    activeDragWindow = win;
+  });
+  
+  function updateDrag(e) {
+    if(!isDragging) return;
+    let newLeft = startLeft + (e.clientX - startX);
+    let newTop = startTop + (e.clientY - startY);
+    newLeft = Math.max(0, Math.min(window.innerWidth - win.offsetWidth, newLeft));
+    newTop = Math.max(0, Math.min(window.innerHeight - 60, newTop));
+    win.style.left = newLeft + 'px';
+    win.style.top = newTop + 'px';
+  }
+  
+  document.addEventListener('mousemove', (e) => {
+    if(!isDragging) return;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => updateDrag(e));
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if(isDragging) {
+      isDragging = false;
+      win.style.transition = '';
+      activeDragWindow = null;
+      localStorage.setItem(`pos_${id}`, JSON.stringify({
+        left: win.style.left, top: win.style.top
+      }));
+    }
+    if(rafId) cancelAnimationFrame(rafId);
+  });
+}
+
+function makeResizable(win, id) {
+  const handle = win.querySelector('.resize-handle');
+  let startX, startY, startW, startH, isResizing = false;
+  let rafId = null;
+  
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = win.offsetWidth;
+    startH = win.offsetHeight;
+  });
+  
+  function updateResize(e) {
+    if(!isResizing) return;
+    let newW = Math.max(320, startW + (e.clientX - startX));
+    let newH = Math.max(260, startH + (e.clientY - startY));
+    win.style.width = newW + 'px';
+    win.style.height = newH + 'px';
+  }
+  
+  document.addEventListener('mousemove', (e) => {
+    if(!isResizing) return;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => updateResize(e));
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if(isResizing) {
+      isResizing = false;
+      localStorage.setItem(`pos_${id}`, JSON.stringify({
+        left: win.style.left, top: win.style.top,
+        width: win.style.width, height: win.style.height
+      }));
+    }
+    if(rafId) cancelAnimationFrame(rafId);
+  });
+}
+
+function loadPosition(win, id, defLeft, defTop, defWidth, defHeight) {
+  const saved = localStorage.getItem(`pos_${id}`);
+  if(saved) {
+    const p = JSON.parse(saved);
+    win.style.left = p.left || defLeft;
+    win.style.top = p.top || defTop;
+    win.style.width = p.width || defWidth;
+    win.style.height = p.height || defHeight;
+  } else {
+    win.style.left = defLeft;
+    win.style.top = defTop;
+    win.style.width = defWidth;
+    win.style.height = defHeight;
+  }
+}
+
+// Setup windows
+const windows = [
+  { id: 'music', defLeft: '60px', defTop: '80px', defWidth: '360px', defHeight: '480px' },
+  { id: 'countdown', defLeft: '460px', defTop: '80px', defWidth: '380px', defHeight: '440px' },
+  { id: 'notes', defLeft: '180px', defTop: '140px', defWidth: '520px', defHeight: '480px' },
+  { id: 'settings', defLeft: '320px', defTop: '180px', defWidth: '400px', defHeight: '380px' },
+  { id: 'shooter', defLeft: '100px', defTop: '200px', defWidth: '500px', defHeight: '420px' },
+  { id: 'flappy', defLeft: '650px', defTop: '200px', defWidth: '350px', defHeight: '500px' }
+];
+
+windows.forEach(w => {
+  const win = document.getElementById(`win-${w.id}`);
+  if(win) {
+    loadPosition(win, w.id, w.defLeft, w.defTop, w.defWidth, w.defHeight);
+    makeDraggable(win, w.id);
+    makeResizable(win, w.id);
+    win.style.display = 'none';
+  }
+});
+
+// Click window to bring to front
+document.querySelectorAll('.window').forEach(win => {
+  win.addEventListener('mousedown', () => bringToFront(win));
+});
+
+// ========== TASKBAR ==========
+function updateTaskbarActive() {
+  ['music', 'countdown', 'notes', 'settings', 'shooter', 'flappy'].forEach(app => {
+    const taskItem = document.querySelector(`.taskbar-item[data-app="${app}"]`);
+    const win = document.getElementById(`win-${app}`);
+    if(taskItem && win) {
+      if(win.style.display !== 'none' && !appState.minimized[app]) {
+        taskItem.classList.add('active');
+      } else {
+        taskItem.classList.remove('active');
+      }
+    }
+  });
+}
+
+function openApp(app) {
+  const win = document.getElementById(`win-${app}`);
+  if(!win) return;
+  appState.minimized[app] = false;
+  win.style.display = 'flex';
+  win.classList.remove('minimized');
+  bringToFront(win);
+  updateTaskbarActive();
+}
+
+function minimizeApp(app) {
+  const win = document.getElementById(`win-${app}`);
+  if(!win) return;
+  appState.minimized[app] = true;
+  win.classList.add('minimized');
+  setTimeout(() => {
+    if(appState.minimized[app]) win.style.display = 'none';
+  }, 250);
+  updateTaskbarActive();
+}
+
+function closeApp(app) {
+  const win = document.getElementById(`win-${app}`);
+  if(!win) return;
+  appState.minimized[app] = false;
+  win.classList.add('minimized');
+  setTimeout(() => {
+    win.style.display = 'none';
+    win.classList.remove('minimized');
+  }, 200);
+  updateTaskbarActive();
+}
+
+function toggleApp(app) {
+  const win = document.getElementById(`win-${app}`);
+  if(!win) return;
+  if(win.style.display === 'none' || appState.minimized[app]) {
+    openApp(app);
+  } else {
+    minimizeApp(app);
+  }
+}
+
+document.querySelectorAll('.taskbar-item').forEach(item => {
+  const app = item.getAttribute('data-app');
+  if(app) {
+    item.addEventListener('click', () => toggleApp(app));
+  }
+});
+
+document.querySelectorAll('.window-btn.close').forEach(btn => {
+  const win = btn.closest('.window');
+  const id = win.id.replace('win-', '');
+  btn.addEventListener('click', () => closeApp(id));
+});
+
+document.querySelectorAll('.window-btn.minimize').forEach(btn => {
+  const win = btn.closest('.window');
+  const id = win.id.replace('win-', '');
+  btn.addEventListener('click', () => minimizeApp(id));
+});
+
+updateTaskbarActive();
+
+// ---------- macOS-like Dock magnification ----------
+function setupDockMagnification() {
+  const dock = document.querySelector('.taskbar');
+  if(!dock) return;
+  const items = Array.from(dock.querySelectorAll('.taskbar-item'));
+  dock.addEventListener('mousemove', (e) => {
+    items.forEach(item => {
+      const icon = item.querySelector('.taskbar-icon');
+      const r = icon.getBoundingClientRect();
+      const iconCenterX = r.left + r.width / 2;
+      const dist = Math.abs(e.clientX - iconCenterX);
+      const maxDist = 140; // influence radius
+      const scale = Math.max(1, 2 - dist / maxDist); // up to 2x
+      icon.style.transform = `scale(${scale})`;
+      item.style.transform = `translateY(${-(scale - 1) * 10}px)`;
+      icon.style.zIndex = Math.round(scale * 1000);
+    });
+  });
+  dock.addEventListener('mouseleave', () => {
+    items.forEach(item => {
+      const icon = item.querySelector('.taskbar-icon');
+      icon.style.transform = '';
+      item.style.transform = '';
+      icon.style.zIndex = '';
+    });
+  });
+}
+setupDockMagnification();
+
+// ========== WORKSPACE DENGAN ANIMASI ==========
+function switchWorkspace(ws) {
+  if(appState.currentWorkspace === ws) return;
+  appState.currentWorkspace = ws;
+  document.querySelectorAll('.workspace-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i + 1 === ws);
+  });
+  const offset = ws === 2 ? 500 : -500;
+  document.querySelectorAll('.window').forEach(win => {
+    if(win.style.display !== 'none') {
+      const currentLeft = parseFloat(win.style.left);
+      if(!isNaN(currentLeft)) {
+        win.style.transition = 'left 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1), top 0.2s ease';
+        win.style.left = (currentLeft + offset) + 'px';
+        setTimeout(() => {
+          win.style.transition = '';
+        }, 300);
+      }
+    }
+  });
+  showToast(`Workspace ${ws}`, 'info');
+}
+
+document.querySelectorAll('.workspace-dot').forEach((dot, idx) => {
+  dot.addEventListener('click', () => switchWorkspace(idx + 1));
+});
+
+// ========== SEARCH ==========
+function showSearch() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:5000;display:flex;align-items:flex-start;justify-content:center;padding-top:20vh';
+  overlay.innerHTML = `
+    <div style="background:#1a1e2e;border-radius:20px;width:360px;overflow:hidden;border:1px solid rgba(255,255,255,0.1)">
+      <input type="text" id="searchInput" placeholder="Search apps..." style="width:100%;padding:14px 18px;background:transparent;border:none;color:white;font-size:14px;outline:none">
+      <div id="searchResults" style="padding:8px"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const input = overlay.querySelector('#searchInput');
+  const results = overlay.querySelector('#searchResults');
+  const apps = [
+    { name: 'Music Player', key: 'music' },
+    { name: 'Countdown', key: 'countdown' },
+    { name: 'Notes', key: 'notes' },
+    { name: 'Settings', key: 'settings' }
+  ];
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase();
+    const filtered = apps.filter(a => a.name.toLowerCase().includes(q));
+    results.innerHTML = filtered.map(a => `
+      <div style="padding:10px 14px;border-radius:12px;cursor:pointer;margin:4px;transition:background 0.15s" 
+           onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'"
+           onclick="openApp('${a.key}'); document.body.removeChild(overlay)">
+        ${a.name}
+      </div>
+    `).join('') || '<div style="padding:10px;color:rgba(255,255,255,0.5)">Not found</div>';
+  });
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay) overlay.remove();
+  });
+  input.focus();
+}
+
+document.getElementById('searchBtn').addEventListener('click', showSearch);
+
+// ========== ARPEGGIO AUDIO ==========
+let audioContext = null;
+let arpeggioInterval = null;
+let masterGain = null;
+let eqInterval = null;
+
+const arpeggioPatterns = [
+  [261.63, 329.63, 392.00, 523.25],
+  [523.25, 392.00, 329.63, 261.63],
+  [261.63, 311.13, 392.00, 466.16],
+  [349.23, 293.66, 261.63, 329.63]
+];
+
+function initAudio() {
+  if(!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioContext.createGain();
+    masterGain.connect(audioContext.destination);
+    masterGain.gain.value = appState.volume / 100;
+  }
+}
+
+function startArpeggio() {
+  if(arpeggioInterval) clearInterval(arpeggioInterval);
+  if(!audioContext) initAudio();
+  if(audioContext.state === 'suspended') audioContext.resume();
+  let idx = 0;
+  const pattern = arpeggioPatterns[appState.currentTrack];
+  function playNote() {
+    if(!appState.playing) return;
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.frequency.value = pattern[idx % pattern.length];
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+    osc.start(now);
+    osc.stop(now + 0.25);
+    idx++;
+  }
+  playNote();
+  arpeggioInterval = setInterval(playNote, 420);
+}
+
+function stopArpeggio() {
+  if(arpeggioInterval) {
+    clearInterval(arpeggioInterval);
+    arpeggioInterval = null;
+  }
+  if(eqInterval) {
+    clearInterval(eqInterval);
+    eqInterval = null;
+  }
+  document.querySelectorAll('.eq-bar').forEach(bar => {
+    bar.style.height = '6px';
+  });
+}
+
+// ========== MUSIC PLAYER ==========
+const tracks = [
+  { name: 'Galactic Salsa', artist: 'Cosmos Band' },
+  { name: 'Mars Mambo', artist: 'Red Planet' },
+  { name: 'Neptune Tango', artist: 'Deep Space' },
+  { name: 'Stardust Cha-Cha', artist: 'Nebula' }
+];
+
+function renderPlaylist() {
+  const container = document.getElementById('playlist');
+  if(!container) return;
+  container.innerHTML = tracks.map((t, i) => `
+    <div class="playlist-item ${i === appState.currentTrack ? 'active' : ''}" data-index="${i}">
+      <span>${i + 1}</span>
+      <span style="flex:1">${t.name}</span>
+    </div>
+  `).join('');
+  container.querySelectorAll('.playlist-item').forEach(item => {
+    item.addEventListener('click', () => selectTrack(parseInt(item.dataset.index)));
+  });
+}
+
+function selectTrack(idx) {
+  appState.currentTrack = idx;
+  renderPlaylist();
+  if(appState.playing) {
+    startArpeggio();
+  }
+  document.getElementById('trackName').textContent = tracks[idx].name;
+  document.getElementById('trackArtist').textContent = tracks[idx].artist;
+}
+
+function togglePlay() {
+  appState.playing = !appState.playing;
+  const btn = document.getElementById('playBtn');
+  const album = document.getElementById('album');
+  if(appState.playing) {
+    btn.textContent = '⏸';
+    album.classList.add('playing');
+    startArpeggio();
+    eqInterval = setInterval(() => {
+      if(!appState.playing) return;
+      const bars = document.querySelectorAll('.eq-bar');
+      bars.forEach(bar => {
+        bar.style.height = (6 + Math.random() * 24) + 'px';
+      });
+    }, 100);
+  } else {
+    btn.textContent = '▶';
+    album.classList.remove('playing');
+    stopArpeggio();
+    document.querySelectorAll('.eq-bar').forEach(bar => {
+      bar.style.height = '6px';
+    });
+  }
+}
+
+function nextTrack() {
+  appState.currentTrack = (appState.currentTrack + 1) % tracks.length;
+  selectTrack(appState.currentTrack);
+  if(appState.playing) {
+    startArpeggio();
+  }
+}
+
+function prevTrack() {
+  appState.currentTrack = (appState.currentTrack - 1 + tracks.length) % tracks.length;
+  selectTrack(appState.currentTrack);
+  if(appState.playing) {
+    startArpeggio();
+  }
+}
+
+document.getElementById('playBtn').addEventListener('click', togglePlay);
+document.getElementById('nextBtn').addEventListener('click', nextTrack);
+document.getElementById('prevBtn').addEventListener('click', prevTrack);
+document.getElementById('volumeSlider').addEventListener('input', (e) => {
+  appState.volume = parseInt(e.target.value);
+  if(masterGain) masterGain.gain.value = appState.volume / 100;
+});
+
+renderPlaylist();
+selectTrack(0);
+
+// ========== SHOOTER GAME - ENHANCED ==========
+let shooterGame = null;
+let shooterSpawnInterval = null;
+
+class ShooterGame {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.player = { x: this.canvas.width / 2, y: this.canvas.height - 50, w: 40, h: 30, vx: 0 };
+    this.bullets = [];
+    this.enemies = [];
+    this.particles = [];
+    this.score = 0;
+    this.lives = 3;
+    this.wave = 1;
+    this.gameRunning = false;
+    this.mouseX = this.canvas.width / 2;
+    this.combo = 0;
+    this.comboTimer = 0;
+  }
+
+  start() {
+    this.score = 0;
+    this.lives = 3;
+    this.wave = 1;
+    this.combo = 0;
+    this.bullets = [];
+    this.enemies = [];
+    this.particles = [];
+    this.gameRunning = true;
+    this.spawnEnemies();
+    this.gameLoop();
+  }
+
+  spawnEnemies() {
+    shooterSpawnInterval = setInterval(() => {
+      if (!this.gameRunning) return;
+      const count = 1 + Math.floor(this.wave / 3);
+      for (let i = 0; i < count; i++) {
+        this.enemies.push({
+          x: Math.random() * (this.canvas.width - 30),
+          y: -20,
+          w: 25,
+          h: 25,
+          vx: (Math.random() - 0.5) * 3,
+          vy: 1.5 + this.wave * 0.3,
+          health: 1
+        });
+      }
+    }, Math.max(400, 1000 - this.wave * 50));
+  }
+
+  shoot() {
+    if (this.gameRunning) {
+      for (let i = -1; i <= 1; i++) {
+        this.bullets.push({
+          x: this.player.x + this.player.w / 2 + i * 8 - 2,
+          y: this.player.y,
+          w: 4,
+          h: 12,
+          vy: -8,
+          damage: 1
+        });
+      }
+    }
+  }
+
+  addParticle(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4 - 1,
+        life: 30,
+        color
+      });
+    }
+  }
+
+  update() {
+    this.player.x += this.player.vx;
+    this.player.x = Math.max(0, Math.min(this.canvas.width - this.player.w, this.player.x));
+    this.player.vx += (this.mouseX - this.player.x - this.player.w / 2) * 0.1 - this.player.vx * 0.1;
+
+    this.bullets = this.bullets.filter(b => b.y > -20);
+    this.bullets.forEach(b => b.y += b.vy);
+
+    this.comboTimer--;
+    if (this.comboTimer <= 0) this.combo = 0;
+
+    this.enemies.forEach((e, i) => {
+      e.x += e.vx;
+      e.y += e.vy;
+
+      this.bullets.forEach((b, bi) => {
+        if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+          this.bullets.splice(bi, 1);
+          e.health -= b.damage;
+          if (e.health <= 0) {
+            this.enemies.splice(i, 1);
+            this.score += (10 + this.combo * 5) * this.wave;
+            this.combo++;
+            this.comboTimer = 60;
+            document.getElementById('shooterScore').textContent = this.score;
+            this.addParticle(e.x + e.w / 2, e.y + e.h / 2, '#f97316');
+          }
+        }
+      });
+
+      if (e.y > this.canvas.height) {
+        this.enemies.splice(i, 1);
+        this.lives--;
+        document.getElementById('shooterLives').textContent = this.lives;
+        if (this.lives <= 0) this.gameRunning = false;
+      }
+    });
+
+    this.particles = this.particles.filter(p => p.life > 0);
+    this.particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.1;
+      p.life--;
+    });
+
+    if (this.enemies.length === 0 && this.score > 0) {
+      this.wave++;
+    }
+  }
+
+  draw() {
+    this.ctx.fillStyle = 'rgba(10, 20, 40, 0.9)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Grid
+    this.ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    this.ctx.lineWidth = 1;
+    for (let i = 0; i < this.canvas.width; i += 40) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(i, 0);
+      this.ctx.lineTo(i, this.canvas.height);
+      this.ctx.stroke();
+    }
+
+    // Player (ship)
+    this.ctx.fillStyle = '#e84c7d';
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.player.x + this.player.w / 2, this.player.y);
+    this.ctx.lineTo(this.player.x, this.player.y + this.player.h);
+    this.ctx.lineTo(this.player.x + this.player.w / 2, this.player.y + this.player.h * 0.7);
+    this.ctx.lineTo(this.player.x + this.player.w, this.player.y + this.player.h);
+    this.ctx.closePath();
+    this.ctx.fill();
+    this.ctx.strokeStyle = '#ff69b4';
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+
+    // Bullets
+    this.ctx.fillStyle = '#22c55e';
+    this.bullets.forEach(b => {
+      this.ctx.fillRect(b.x, b.y, b.w, b.h);
+      this.ctx.fillStyle = '#86efac';
+      this.ctx.fillRect(b.x + 1, b.y + 1, b.w - 2, b.h - 3);
+      this.ctx.fillStyle = '#22c55e';
+    });
+
+    // Enemies
+    this.enemies.forEach(e => {
+      this.ctx.fillStyle = '#f97316';
+      this.ctx.beginPath();
+      this.ctx.arc(e.x + e.w / 2, e.y + e.h / 2, e.w / 2, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.strokeStyle = '#fbbf24';
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
+    });
+
+    // Particles
+    this.particles.forEach(p => {
+      this.ctx.globalAlpha = p.life / 30;
+      this.ctx.fillStyle = p.color;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    this.ctx.globalAlpha = 1;
+
+    // UI
+    this.ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    this.ctx.font = 'bold 14px Arial';
+    this.ctx.fillText(`Wave: ${this.wave}`, 10, 25);
+    if (this.combo > 1) {
+      this.ctx.fillStyle = '#fbbf24';
+      this.ctx.font = 'bold 16px Arial';
+      this.ctx.fillText(`COMBO x${this.combo}!`, this.canvas.width / 2 - 40, 25);
+    }
+
+    if (!this.gameRunning && this.score > 0) {
+      this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = 'bold 24px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 30);
+      this.ctx.font = 'bold 18px Arial';
+      this.ctx.fillText(`Score: ${this.score} | Wave: ${this.wave}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
+      this.ctx.textAlign = 'left';
+    }
+  }
+
+  gameLoop() {
+    if (!this.gameRunning) return;
+    this.update();
+    this.draw();
+    requestAnimationFrame(() => this.gameLoop());
+  }
+}
+
+document.getElementById('shooterBtn').addEventListener('click', () => {
+  if(!shooterGame) shooterGame = new ShooterGame('shooterCanvas');
+  if(shooterSpawnInterval) clearInterval(shooterSpawnInterval);
+  shooterGame.start();
+  document.getElementById('shooterBtn').textContent = 'Restart';
+});
+
+let shooterMouseDown = false;
+document.getElementById('shooterCanvas').addEventListener('mousedown', () => {
+  shooterMouseDown = true;
+  let shootInterval = setInterval(() => {
+    if(!shooterMouseDown || !shooterGame || !shooterGame.gameRunning) {
+      clearInterval(shootInterval);
+      return;
+    }
+    shooterGame.shoot();
+  }, 80);
+});
+
+document.getElementById('shooterCanvas').addEventListener('mouseup', () => {
+  shooterMouseDown = false;
+});
+
+document.getElementById('shooterCanvas').addEventListener('mousemove', (e) => {
+  if(shooterGame) {
+    const r = shooterGame.canvas.getBoundingClientRect();
+    shooterGame.mouseX = e.clientX - r.left;
+  }
+});
+
+document.getElementById('shooterCanvas').addEventListener('mouseleave', () => {
+  shooterMouseDown = false;
+});
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && shooterGame) {
+    shooterGame.gameRunning = false;
+    if(shooterSpawnInterval) clearInterval(shooterSpawnInterval);
+    shooterMouseDown = false;
+  }
+});
+
+// ========== FLAPPY BIRD GAME - ENHANCED ==========
+let flappyGame = null;
+let flappySpawnInterval = null;
+
+class FlappyBird {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.bird = { x: 50, y: 150, w: 28, h: 28, vy: 0, g: 0.5, rotation: 0 };
+    this.pipes = [];
+    this.score = 0;
+    this.highScore = localStorage.getItem('flappy_high') || 0;
+    this.gameRunning = false;
+    this.pipeGap = 120;
+    this.pipeWidth = 70;
+    this.difficulty = 1;
+    this.particles = [];
+  }
+
+  start() {
+    this.score = 0;
+    this.bird = { x: 50, y: this.canvas.height / 2, w: 28, h: 28, vy: 0, g: 0.5, rotation: 0 };
+    this.pipes = [];
+    this.particles = [];
+    this.difficulty = 1;
+    this.gameRunning = true;
+    this.gameLoop();
+    this.spawnPipes();
+  }
+
+  jump() {
+    if (this.gameRunning) {
+      this.bird.vy = -9;
+      this.bird.rotation = -0.3;
+      this.addParticle(this.bird.x, this.bird.y);
+    }
+  }
+
+  spawnPipes() {
+    flappySpawnInterval = setInterval(() => {
+      if (!this.gameRunning) return;
+      const gapStart = 60 + Math.random() * 120;
+      this.pipes.push({
+        x: this.canvas.width,
+        topH: gapStart,
+        bottomY: gapStart + this.pipeGap,
+        vx: -3.5 - this.difficulty * 0.2
+      });
+    }, Math.max(1200, 1500 - this.difficulty * 100));
+  }
+
+  addParticle(x, y) {
+    for (let i = 0; i < 5; i++) {
+      this.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 3,
+        vy: Math.random() * 2 - 1,
+        life: 20,
+        size: Math.random() * 3 + 2
+      });
+    }
+  }
+
+  update() {
+    this.bird.vy += this.bird.g;
+    this.bird.y += this.bird.vy;
+    this.bird.rotation += (this.bird.vy * 0.02 - this.bird.rotation) * 0.1;
+    this.bird.rotation = Math.max(-Math.PI / 6, Math.min(Math.PI / 4, this.bird.rotation));
+
+    this.pipes.forEach((p, i) => {
+      p.x += p.vx;
+
+      if (p.x + this.pipeWidth < 0) {
+        this.pipes.splice(i, 1);
+        this.score++;
+        this.difficulty = 1 + Math.floor(this.score / 5) * 0.1;
+        document.getElementById('flappyScore').textContent = this.score;
+        if (this.score > parseInt(this.highScore)) {
+          this.highScore = this.score;
+          localStorage.setItem('flappy_high', this.score);
+        }
+        this.addParticle(this.canvas.width / 2, 50);
+      }
+
+      const bx = this.bird.x + this.bird.w / 2;
+      const by = this.bird.y + this.bird.h / 2;
+      const br = this.bird.w / 2;
+
+      if (bx + br > p.x &&
+        bx - br < p.x + this.pipeWidth &&
+        (by - br < p.topH || by + br > p.bottomY)) {
+        this.gameRunning = false;
+        this.addParticle(bx, by);
+      }
+    });
+
+    if (this.bird.y + this.bird.h > this.canvas.height || this.bird.y < 0) {
+      this.gameRunning = false;
+    }
+
+    this.particles = this.particles.filter(p => p.life > 0);
+    this.particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.1;
+      p.life--;
+    });
+  }
+
+  draw() {
+    // Sky gradient
+    const grad = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+    grad.addColorStop(0, '#87CEEB');
+    grad.addColorStop(1, '#E0F6FF');
+    this.ctx.fillStyle = grad;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Ground
+    this.ctx.fillStyle = '#8B7355';
+    this.ctx.fillRect(0, this.canvas.height - 30, this.canvas.width, 30);
+    this.ctx.fillStyle = '#90EE90';
+    this.ctx.fillRect(0, this.canvas.height - 30, this.canvas.width, 5);
+
+    // Pipes
+    this.ctx.fillStyle = '#228B22';
+    this.pipes.forEach(p => {
+      this.ctx.fillRect(p.x, 0, this.pipeWidth, p.topH);
+      this.ctx.fillRect(p.x, p.bottomY, this.pipeWidth, this.canvas.height - p.bottomY);
+      
+      // Pipe rim
+      this.ctx.fillStyle = '#1a6b1a';
+      this.ctx.fillRect(p.x - 2, p.topH - 10, this.pipeWidth + 4, 10);
+      this.ctx.fillRect(p.x - 2, p.bottomY, this.pipeWidth + 4, 10);
+      this.ctx.fillStyle = '#228B22';
+    });
+
+    // Bird
+    this.ctx.save();
+    this.ctx.translate(this.bird.x + this.bird.w / 2, this.bird.y + this.bird.h / 2);
+    this.ctx.rotate(this.bird.rotation);
+    
+    // Bird body (yellow circle)
+    this.ctx.fillStyle = '#FFD700';
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, this.bird.w / 2, 0, Math.PI * 2);
+    this.ctx.fill();
+    
+    // Eye
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(4, -4, 6, 6);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(5, -3, 4, 4);
+    
+    // Beak
+    this.ctx.fillStyle = '#FF8C00';
+    this.ctx.beginPath();
+    this.ctx.moveTo(12, -2);
+    this.ctx.lineTo(12, 2);
+    this.ctx.lineTo(16, 0);
+    this.ctx.closePath();
+    this.ctx.fill();
+    
+    this.ctx.restore();
+
+    // Particles
+    this.particles.forEach(p => {
+      this.ctx.globalAlpha = p.life / 20;
+      this.ctx.fillStyle = '#FFD700';
+      this.ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    });
+    this.ctx.globalAlpha = 1;
+
+    // UI
+    this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    this.ctx.fillRect(0, 0, this.canvas.width, 40);
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = 'bold 16px Arial';
+    this.ctx.fillText(`Score: ${this.score}`, 10, 25);
+    this.ctx.fillText(`Best: ${this.highScore}`, this.canvas.width - 100, 25);
+
+    // Game Over
+    if (!this.gameRunning && this.score >= 0) {
+      this.ctx.fillStyle = 'rgba(0,0,0,0.75)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = 'bold 28px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40);
+      this.ctx.font = 'bold 18px Arial';
+      this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+      this.ctx.fillText(`Best: ${this.highScore}`, this.canvas.width / 2, this.canvas.height / 2 + 40);
+      this.ctx.textAlign = 'left';
+    }
+  }
+
+  gameLoop() {
+    this.update();
+    this.draw();
+    if (this.gameRunning) requestAnimationFrame(() => this.gameLoop());
+  }
+}
+
+document.getElementById('flappyBtn').addEventListener('click', () => {
+  if(!flappyGame) flappyGame = new FlappyBird('flappyCanvas');
+  if(flappySpawnInterval) clearInterval(flappySpawnInterval);
+  flappyGame.start();
+  document.getElementById('flappyBtn').textContent = 'Restart';
+});
+
+document.getElementById('flappyCanvas').addEventListener('click', () => {
+  if(flappyGame) flappyGame.jump();
+});
+
+document.addEventListener('keydown', (e) => {
+  if(e.code === 'Space' && flappyGame) {
+    e.preventDefault();
+    flappyGame.jump();
+  }
+});
+
+// ========== COUNTDOWN ==========
+function updateCountdown() {
+  const now = new Date();
+  const target = new Date('2026-09-30T23:59:59');
+  const start = new Date('2026-06-01T00:00:00');
+  const diff = target - now;
+  if(diff <= 0) {
+    document.getElementById('days').textContent = '000';
+    document.getElementById('hours').textContent = '00';
+    document.getElementById('minutes').textContent = '00';
+    document.getElementById('seconds').textContent = '00';
+    return;
+  }
+  document.getElementById('days').textContent = Math.floor(diff / 86400000).toString().padStart(3, '0');
+  document.getElementById('hours').textContent = Math.floor((diff % 86400000) / 3600000).toString().padStart(2, '0');
+  document.getElementById('minutes').textContent = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+  document.getElementById('seconds').textContent = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+  
+  const total = target - start;
+  let elapsed = now - start;
+  if(elapsed < 0) elapsed = 0;
+  const percent = (elapsed / total) * 100;
+  const circumference = 302;
+  const offset = circumference - (percent / 100) * circumference;
+  document.getElementById('progressCircle').style.strokeDashoffset = offset;
+  
+  const messages = ['✨ Keep going ✨', '🚀 Keep creating 🚀', '💃 Don\'t stop 💃', '⭐ You can do it ⭐'];
+  document.getElementById('motivation').textContent = messages[Math.floor(Date.now() / 3600000) % messages.length];
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ========== NOTES ==========
+function parseMarkdown(text) {
+  return text.split('\n').map(line => {
+    line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    if(line.startsWith('# ')) return `<h3 style="margin:8px 0;color:#e84c7d">${line.slice(2)}</h3>`;
+    if(line.startsWith('- ')) return `<li style="margin-left:20px">${line.slice(2)}</li>`;
+    return line ? `<p style="margin:4px 0">${line}</p>` : '<br>';
+  }).join('');
+}
+
+const noteInput = document.getElementById('noteInput');
+const notePreview = document.getElementById('notePreview');
+const noteFooter = document.getElementById('noteFooter');
+
+noteInput.addEventListener('input', () => {
+  notePreview.innerHTML = parseMarkdown(noteInput.value);
+  noteFooter.textContent = `Edited: ${new Date().toLocaleString()}`;
+});
+
+document.getElementById('saveNote').addEventListener('click', () => {
+  localStorage.setItem('salsa_note', noteInput.value);
+  localStorage.setItem('salsa_note_time', new Date().toLocaleString());
+  noteFooter.textContent = `Saved: ${new Date().toLocaleString()}`;
+  showToast('Note saved', 'success');
+});
+
+document.getElementById('loadNote').addEventListener('click', () => {
+  const saved = localStorage.getItem('salsa_note');
+  if(saved) {
+    noteInput.value = saved;
+    notePreview.innerHTML = parseMarkdown(saved);
+    const time = localStorage.getItem('salsa_note_time') || 'previously';
+    noteFooter.textContent = `Loaded: ${time}`;
+    showToast('Note loaded', 'info');
+  } else {
+    showToast('No saved notes', 'info');
+  }
+});
+
+document.getElementById('copyNote').addEventListener('click', () => {
+  navigator.clipboard.writeText(noteInput.value);
+  showToast('Copied to clipboard', 'success');
+});
+
+document.getElementById('exportNote').addEventListener('click', () => {
+  const blob = new Blob([noteInput.value], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `note_${Date.now()}.txt`;
+  a.click();
+  showToast('Note exported', 'success');
+});
+
+// ========== SETTINGS ==========
+document.querySelectorAll('.color-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const color = opt.dataset.color;
+    document.documentElement.style.setProperty('--accent', color);
+    document.querySelectorAll('.color-opt').forEach(o => o.style.borderColor = 'transparent');
+    opt.style.borderColor = 'white';
+    showToast('Color changed', 'info');
+  });
+});
+
+document.getElementById('defaultVolume').addEventListener('input', (e) => {
+  appState.volume = parseInt(e.target.value);
+  if(masterGain) masterGain.gain.value = appState.volume / 100;
+  document.getElementById('volumeSlider').value = appState.volume;
+  showToast(`Volume: ${appState.volume}%`, 'info');
+});
+
+document.getElementById('aboutBtn').addEventListener('click', () => {
+  showToast('SALSA OS - Made By @vortex9804', 'info');
+});
+
+// ========== TOAST ==========
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(40px)';
+    toast.style.transition = 'all 0.2s';
+    setTimeout(() => toast.remove(), 250);
+  }, 2500);
+}
+
+// ========== EASTER EGG ==========
+document.addEventListener('keydown', (e) => {
+  if(e.key.length === 1 && !e.ctrlKey && !e.altKey) {
+    appState.keyBuffer = (appState.keyBuffer + e.key).slice(-5);
+    if(appState.keyBuffer.toUpperCase() === 'SALSA') {
+      appState.keyBuffer = '';
+      showToast('💃 SALSA MODE ACTIVATED 🕺', 'success');
+      document.querySelectorAll('.window').forEach(w => w.classList.add('shake'));
+      const disco = document.getElementById('disco');
+      disco.classList.add('active');
+      setTimeout(() => {
+        document.querySelectorAll('.window').forEach(w => w.classList.remove('shake'));
+        disco.classList.remove('active');
+      }, 2500);
+    }
+  }
+});
+
+// ========== INITIAL ==========
+showToast('Welcome to SALSA OS', 'info');
+</script>
+</body>
+</html>
